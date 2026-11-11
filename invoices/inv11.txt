@@ -1,0 +1,9 @@
+BYTEFORGE HOSTING
+Ref BF-0099182    2026-10-01
+
+Item                         Qty  Price   Total
+VPS Standard (monthly)         2  24.00   48.00
+Automated backups (monthly)    2   5.00   10.00
+Domain renewal, 1 yr           1  14.99   14.99
+
+Invoice total: $72.99

@@ -1,0 +1,9 @@
+GIGASTREAM INTERNET
+Invoice GS-7782103
+Period ending 2026-04-30
+
+Business fiber 500 Mbps       89.99
+Static IP address             10.00
+Modem rental                   8.00
+
+Total due this month: $107.99

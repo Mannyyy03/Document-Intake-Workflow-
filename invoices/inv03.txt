@@ -1,0 +1,8 @@
+SKYLINE AIR - TRAVEL RECEIPT
+Ref: SA-5529-X | 14 Feb 2026
+
+Flight SFO to DEN (economy)    238.40
+Checked bag                     35.00
+Seat selection                  18.00
+-------------------------------------
+Amount charged                 291.40

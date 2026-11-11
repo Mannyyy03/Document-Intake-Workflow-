@@ -1,0 +1,8 @@
+SWIFT RIDES - TRIP SUMMARY
+Receipt for business account, 2026-05-08
+
+Trip 1: Airport to hotel      $18.50
+Trip 2: Hotel to conference   $27.75
+Driver tips                    $6.00
+
+Total charged: $52.25

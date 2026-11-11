@@ -1,0 +1,9 @@
+CITYWATER DEPARTMENT
+Bill W-203391 -- dated 2026-08-01
+
+  Water: 14 CCF x 4.20 = 58.80
+  Sewer: 14 CCF x 3.10 = 43.40
+  Stormwater fee       =  6.00
+
+  AMOUNT DUE: $108.20
+  Due by: 2026-08-25

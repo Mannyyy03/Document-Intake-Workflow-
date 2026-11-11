@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "jDkv+N6DLbg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\mriva\\Personal Projects\\AI Workflow\\doc-intake\\InvoiceApi\\InvoiceApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\mriva\\.nuget\\packages\\npgsql\\10.0.3\\npgsql.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,10 @@
+Northwind Plumbing LLC
+INVOICE 0047
+Date: 2026-04-11
+
+Description                 Qty   Rate     Amount
+Labor (hours)                 3   85.00    255.00
+Replacement shutoff valve     1   42.00     42.00
+Waste disposal fee            1   15.00     15.00
+
+BALANCE DUE:                              312.00

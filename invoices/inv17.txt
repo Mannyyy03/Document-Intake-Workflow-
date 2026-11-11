@@ -1,0 +1,8 @@
+COASTAL RAIL
+E-ticket invoice, 2026-05-20
+
+Adult fare, round trip   2 @ 64.00   128.00
+Business class upgrade   2 @ 22.50    45.00
+Booking fee                             4.50
+
+Total paid                            177.50

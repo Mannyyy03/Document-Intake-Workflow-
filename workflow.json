@@ -1,0 +1,258 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f639489d-de63-49b4-9ec3-4f7d86f95d8d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/*.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "c89d14aa-68bf-4454-90d0-eba6b63ef01d",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "129b2e02-7c02-4a04-b7fd-2fcb97e23852",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "hermes3:8b",
+          "mode": "list",
+          "cachedResultName": "hermes3:8b"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You extract data from invoices. Return ONLY a JSON object with these keys: invoice_number (string), vendor (string), invoice_date (YYYY-MM-DD), total (number, no currency symbol), category (one of: Office Supplies, Software, Travel, Utilities, Services, Other). If a field is missing, use null. No explanation and no markdown.\n\nInvoice text:\n{{ $json.data }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "f0c84bca-3424-4225-be8b-9de6c7fe3b45",
+      "name": "Message a model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "RoEoWqQHAMJeLze9",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allowed = ['Office Supplies','Software','Travel','Utilities','Services','Other'];\n\nfunction getReply(j) {\n  return j.content ?? j.text ?? j.output ?? j.response?.text\n    ?? j.message?.content ?? j.choices?.[0]?.message?.content;\n}\n\nreturn $input.all().map(item => {\n  const reply = getReply(item.json);\n  let data = null;\n  let error = null;\n  try {\n    if (reply === undefined || reply === null || reply === '') {\n      throw new Error('no AI reply found; fields seen: ' + Object.keys(item.json).join(', '));\n    }\n    data = (typeof reply === 'object')\n      ? reply\n      : JSON.parse(String(reply).replace(/```json|```/g, '').trim());\n    if (!data.invoice_number) error = 'missing invoice_number';\n    else if (!data.vendor) error = 'missing vendor';\n    else if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(data.invoice_date) || isNaN(Date.parse(data.invoice_date))) error = 'bad date';\n    else if (typeof data.total !== 'number' || data.total <= 0) error = 'bad total';\n    else if (!allowed.includes(data.category)) error = 'bad category';\n  } catch (e) {\n    error = 'invalid JSON: ' + e.message;\n  }\n  const rawText = (typeof reply === 'string') ? reply : JSON.stringify(reply ?? null);\n  return { json: { valid: !error, error, raw_output: rawText, ...(data || {}) } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "4741488e-00ab-42c8-a301-9a52e6e141f2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "1bef5032-b38d-4d2d-8dcb-7a1e2d49ebcb",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "86403e26-f42f-4290-b575-a2ccc01eff83",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO invoices (invoice_number, vendor, invoice_date, total, category)\nVALUES ($1, $2, $3, $4, $5)\nON CONFLICT (invoice_number) DO NOTHING;",
+        "options": {
+          "queryReplacement": "={{ $json.invoice_number }}, {{ $json.vendor }}, {{ $json.invoice_date }}, {{ $json.total }}, {{ $json.category }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        1488,
+        -96
+      ],
+      "id": "dc2189fc-66c5-4012-8732-c0057ab2bd0f",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Toip57ehfkLxGOw0",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO review_queue (raw_output, error) VALUES ($1, $2);",
+        "options": {
+          "queryReplacement": "={{ $json.raw_output }}, {{ $json.error }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.8,
+      "position": [
+        1488,
+        96
+      ],
+      "id": "f2c05481-888d-44ae-af5b-3613efe6b519",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "Toip57ehfkLxGOw0",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "af59a3bd-52ed-4360-acac-c9f97b6da886",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bc031ad45ff6df92a2c8fecc0a3efb88035a2135004bc385038c68449d735618"
+  },
+  "nodeGroups": [],
+  "id": "63sYlvovrWgOTBvC",
+  "tags": []
+}
